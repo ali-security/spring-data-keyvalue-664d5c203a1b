@@ -21,6 +21,7 @@ import java.util.Comparator;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
@@ -37,6 +38,13 @@ class SpelPropertyComperatorUnitTests {
 	private static final SomeType TWO = new SomeType("two", 2, 2);
 	private static final WrapperType WRAPPER_ONE = new WrapperType("w-one", ONE);
 	private static final WrapperType WRAPPER_TWO = new WrapperType("w-two", TWO);
+
+	@Test // CVE-2026-41719
+	void shouldRejectMethodInvocationInPath() {
+
+		Comparator<SomeType> comparator = new SpelPropertyComparator<>("stringProperty.toUpperCase()", PARSER);
+		assertThatExceptionOfType(SpelEvaluationException.class).isThrownBy(() -> comparator.compare(ONE, TWO));
+	}
 
 	@Test // DATACMNS-525
 	void shouldCompareStringAscCorrectly() {
